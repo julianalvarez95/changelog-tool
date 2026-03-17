@@ -1,0 +1,40 @@
+{% if mention %}{{ mention }} {% endif %}🚀 *Wave — Changelog semanal | {{ period }}*
+{% if use_intelligence %}
+{{ intel_summary }}
+
+*Highlights*
+{% for item in intelligence.highlights %}
+• *{{ item.title }}* — {{ item.description }} _[{{ item.domain }}]_
+{% else %}
+_Sin highlights._
+{% endfor %}
+
+*Correcciones*
+{% for item in intelligence.fixes %}
+• *{{ item.title }}* — {{ item.description }} _[{{ item.domain }}]_
+{% else %}
+_Sin correcciones._
+{% endfor %}
+
+*Mejoras*
+{% for item in intelligence.improvements %}
+• {{ item.title }} — {{ item.description }} _[{{ item.domain }}]_
+{% else %}
+_Sin mejoras._
+{% endfor %}
+
+_{{ total_repos }} repo{% if total_repos != 1 %}s{% endif %} · {{ total_commits }} commit{% if total_commits != 1 %}s{% endif %}_
+{% elif has_changes %}
+_Esta semana: {{ summary | join(' · ') }}_
+
+{% for cat in categories %}
+{{ cat.emoji }} *{{ cat.label }}*
+{% for c in cat.commits %}
+• {% if c.is_breaking %}⚠️ *BREAKING* {% endif %}{{ c.description }}{% if c.url %} (<{{ c.url }}|ver>){% endif %} _{{ c.repo_name }}_
+{% endfor %}
+
+{% endfor %}
+_{{ total_repos }} repo{% if total_repos != 1 %}s{% endif %} · {{ total_commits }} commit{% if total_commits != 1 %}s{% endif %} · {{ period }}_
+{% else %}
+_Sin cambios en este período._
+{% endif %}

@@ -1,0 +1,63 @@
+changelog:
+  title: "Product Updates"
+  tone: "business"  # business | technical | executive
+  since_last_run: true  # uses last_run.json; alternative: since: "2025-03-10"
+  # since: "2025-03-10"
+  # until: "2025-03-17"
+
+repositories:
+  - name: "My GitHub Repo"
+    provider: github
+    owner: "my-org"
+    repo: "my-repo"
+    branch: main
+
+  - name: "My Bitbucket Repo"
+    provider: bitbucket
+    workspace: "my-workspace"
+    repo: "my-repo"
+    branch: main
+
+categories:
+  features:
+    label: "New Features"
+    emoji: "🚀"
+    commit_types: ["feat", "feature"]
+  fixes:
+    label: "Bug Fixes"
+    emoji: "🐛"
+    commit_types: ["fix", "hotfix", "bugfix"]
+  improvements:
+    label: "Improvements"
+    emoji: "⚡"
+    commit_types: ["perf", "refactor", "chore", "docs", "style"]
+  other:
+    label: "Other Changes"
+    emoji: "📋"
+
+distribution:
+  slack:
+    channel: "#product-updates"
+    mention: ""
+  email:
+    subject: "Product Updates {title} - {period}"
+    recipients:
+      - stakeholder@company.com
+    from_name: "Changelog Bot"
+
+llm:
+  enabled: true
+  model: "gpt-4o-mini"
+  max_highlights: 4
+  max_fixes: 5
+  max_improvements: 4
+  domains:
+    - Core Product
+    - Billing
+    - UX/UI
+    - Data
+    - Infra
+
+output:
+  save_markdown: true
+  output_dir: "./changelogs"

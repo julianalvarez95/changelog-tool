@@ -1,0 +1,55 @@
+# {{ title }}
+
+**Período:** {{ period }}
+
+{% if use_intelligence %}
+> {{ intel_summary }}
+
+---
+## 🚀 Highlights
+
+{% for item in intelligence.highlights %}
+- **{{ item.title }}** — {{ item.description }} *({{ item.domain }})*
+{% else %}
+_Sin highlights._
+{% endfor %}
+
+## 🐛 Correcciones
+
+{% for item in intelligence.fixes %}
+- **{{ item.title }}** — {{ item.description }} *({{ item.domain }})*
+{% else %}
+_Sin correcciones._
+{% endfor %}
+
+## ⚡ Mejoras
+
+{% for item in intelligence.improvements %}
+- **{{ item.title }}** — {{ item.description }} *({{ item.domain }})*
+{% else %}
+_Sin mejoras internas._
+{% endfor %}
+
+---
+
+_{{ total_repos }} repositorio{% if total_repos != 1 %}s{% endif %} · {{ total_commits }} commit{% if total_commits != 1 %}s{% endif %} · {{ period }}_
+{% elif has_changes %}
+{% if summary %}
+> Esta semana: {{ summary | join(' · ') }}
+
+{% endif %}
+---
+{% for cat in categories %}
+## {{ cat.emoji }} {{ cat.label }}
+
+{% for c in cat.commits %}
+- {% if c.is_breaking %}**⚠️ BREAKING CHANGE** {% endif %}{{ c.description }}{% if c.url %} ([ver commit]({{ c.url }})){% endif %} _({{ c.repo_name }})_
+{% endfor %}
+
+{% endfor %}
+---
+
+_{{ total_repos }} repositorio{% if total_repos != 1 %}s{% endif %} · {{ total_commits }} commit{% if total_commits != 1 %}s{% endif %} · {{ period }}_
+{% else %}
+_Sin cambios en este período._
+{% endif %}
