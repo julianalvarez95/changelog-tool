@@ -1,23 +1,52 @@
 # Changelog Generator
 
-A tool that monitors GitHub and Bitbucket repositories, parses the commit history, and distributes business-language changelogs to non-technical stakeholders via Slack and email.
+> Turns git history into business-friendly changelogs and delivers them to the right people — automatically.
 
-## What It Does
+Built for teams where developers ship fast but non-technical stakeholders (executives, sales, ops) struggle to understand what changed and why. This tool bridges that gap by monitoring GitHub and Bitbucket repositories, summarizing commits using an LLM, and distributing polished changelogs via Slack and email.
 
-1. Fetches commits from GitHub and Bitbucket within a date range
-2. Filters out merge commits and technical noise
-3. Classifies commits into categories: New Features, Fixes, Improvements, Other Changes
-4. Optionally sends all commits to GPT-4o-mini to generate an intelligent changelog with an executive summary in English, descriptive titles, and classification by functional domain
-5. Renders the result using Jinja2 templates (Slack, HTML email, Markdown)
-6. Distributes via Slack and/or email, and saves a local `.md` file
+**Stack:** Python · OpenAI API · GitHub API · Bitbucket API · Slack SDK · Jinja2 · SMTP
 
-## Installation
+---
+
+## Features
+
+- **Multi-repo support** — monitors any combination of GitHub and Bitbucket repositories simultaneously
+- **LLM-powered summaries** — sends all commits to GPT-4o-mini in a single call; produces an executive summary, highlights, fixes, and improvements in plain English
+- **Parallel fetching** — all repos are fetched concurrently via `ThreadPoolExecutor`
+- **Output cache** — LLM results are cached by date range; re-runs don't call OpenAI unless commits changed or `--no-cache` is passed
+- **Fallback mode** — works without an OpenAI key; outputs categorized commits using Conventional Commits parsing
+- **Flexible distribution** — Slack (bot), email (Gmail SMTP), and local Markdown file
+- **Configurable templates** — Jinja2 templates for Slack, HTML email, and Markdown; fully customizable tone and categories
+- **Scheduled runs** — designed for cron; persists last run timestamp to avoid duplicate changelogs
+
+---
+
+## How It Works
+
+```
+Fetch commits (parallel) → Parse & categorize → LLM intelligence → Render templates → Distribute
+```
+
+1. Fetches commits from all configured repos in the given date range
+2. Filters noise (merges, version bumps, empty messages) and classifies by Conventional Commits type
+3. Sends all commits to GPT-4o-mini → structured JSON with summary, highlights, fixes, improvements
+4. Caches the LLM output for the period
+5. Renders Slack message, HTML email, and Markdown via Jinja2
+6. Distributes via Slack bot and/or SMTP, saves `.md` locally
+
+---
+
+## Quick Start
 
 ```bash
 pip install -r requirements.txt
 cp .env.example .env
-# Fill in .env with real tokens
+cp config.example.yaml config.yaml
+# Fill in tokens and repo config
+python3 changelog.py --dry-run
 ```
+
+---
 
 ## Configuration
 
@@ -39,19 +68,19 @@ OPENAI_API_KEY=sk-xxxxxxxxxxxx   # optional — enables LLM intelligence
 changelog:
   title: "Product Updates"
   tone: "business"
-  since_last_run: true   # uses last_run.json; alternative: since: "2025-03-10"
+  since_last_run: true
 
 repositories:
-  - name: "CRM Backend"
+  - name: "Backend"
     provider: github
     owner: "my-org"
-    repo: "crm-backend"
+    repo: "my-backend"
     branch: main
 
-  - name: "CRM Frontend"
+  - name: "Frontend"
     provider: bitbucket
     workspace: "my-workspace"
-    repo: "crm-frontend"
+    repo: "my-frontend"
     branch: main
 
 categories:
@@ -75,9 +104,9 @@ distribution:
   slack:
     channel: "#product-updates"
   email:
-    subject: "Product Updates {title} - {period}"
+    subject: "Product Updates - {period}"
     recipients:
-      - maria@company.com
+      - stakeholder@company.com
     from_name: "Changelog Bot"
 
 llm:
@@ -87,9 +116,7 @@ llm:
   max_fixes: 5
   max_improvements: 4
   domains:
-    - Deals
-    - Talent
-    - Contracts
+    - Core Product
     - Billing
     - UX/UI
     - Data
@@ -100,140 +127,121 @@ output:
   output_dir: "./changelogs"
 ```
 
-## Usage
+---
+
+## CLI
 
 ```bash
-# Normal run (from last_run.json to today)
+# Run from last successful run to today
 python3 changelog.py
 
-# Dry-run: generates and prints to console without sending
+# Dry-run: generate and print without sending
 python3 changelog.py --dry-run
 
-# Manual date range
+# Custom date range
 python3 changelog.py --since 2025-03-10 --until 2025-03-17
 
-# Without LLM (fallback mode, categories only)
-python3 changelog.py --dry-run --no-llm
+# Skip LLM — categorized output only
+python3 changelog.py --no-llm
 
-# Force OpenAI call even if cache exists for that period
-python3 changelog.py --since 2026-03-10 --no-cache
+# Force fresh LLM call (ignore cache)
+python3 changelog.py --since 2025-03-10 --no-cache
 
-# Slack only
+# Send to one channel only
 python3 changelog.py --only slack
-
-# Email only
 python3 changelog.py --only email
+
+# Save Markdown output
+python3 changelog.py --dry-run --save-markdown
 ```
 
-## Output Modes
+---
 
-### With LLM (`OPENAI_API_KEY` configured)
+## Sample Output
 
-All commits from all repos are sent in a single call to GPT-4o-mini (fetched in parallel). The model produces:
-
-- **Executive summary** — one-line summary in English
-- **Highlights** — new features or capabilities (max 4)
-- **Fixes** — user-visible bugs (max 5)
-- **Improvements** — internal or minor changes (max 4)
-
-Each item includes `title`, `description`, `domain` (functional domain), and `importance`.
-
-The result is cached at `changelogs/.intel_cache/<since>_<until>.json`. Re-runs for the same period reuse the cache without calling OpenAI. Use `--no-cache` to force a fresh call.
+### With LLM
 
 ```
-🚀 Wave — Weekly Changelog | Mar 10 — Mar 17 2026
+🚀 Weekly Changelog | Mar 10 — Mar 17 2025
 Multi-branch support, payment fixes, and KPI improvements shipped this week.
 
 *Highlights*
-• *Multi-Branch Functionality Added* — Users can now select and manage multiple branches from the user dropdown. [Deals]
-• *KPI Data Integration* — New model integrating KPI data into the OpportunityCount component. [Data]
+• *Multi-Branch Support* — Users can now select and manage multiple branches from the profile dropdown. [Core Product]
+• *KPI Dashboard Integration* — New data model surfacing opportunity KPIs directly in the main dashboard. [Data]
 
 *Fixes*
-• *Contract Payment Fixes* — Checks and early returns added to prevent processing errors. [Contracts]
-• *Deleted Entries Filter* — Filters applied to billing and business deal APIs for data accuracy. [Data]
+• *Payment Processing Fix* — Added guards to prevent errors on contracts with missing payment data. [Billing]
+• *Deleted Records Filter* — API responses now correctly exclude soft-deleted entries. [Data]
 
 *Improvements*
-• Resume Builder Adjustments — Adjusted textarea rows for better usability. [UX/UI]
+• Form layout adjustments for better usability on smaller screens. [UX/UI]
 
-_4 repos · 34 commits_
+_3 repos · 34 commits_
 ```
 
 ### Without LLM (fallback)
 
-Displays commits grouped by category, with source repo and commit link.
-
 ```
-🚀 Wave — Weekly Changelog | Mar 10 — Mar 17 2026
+🚀 Weekly Changelog | Mar 10 — Mar 17 2025
 _This week: 🚀 4 new features · 🐛 9 fixes · 📋 21 other changes_
 
 🚀 *New Features*
-• Add endpoint for opportunity KPIs _Wave SVC Entity_
-• Implement multi-branch support _Wave Backend PHP_
+• Add endpoint for opportunity KPIs [backend]
+• Implement multi-branch support [backend]
 
 🐛 *Fixes*
-• Fix optional industry field in solution forms _Wave Angular_
+• Fix optional industry field in solution forms [frontend]
 
-_4 repos · 34 commits · Mar 10 — Mar 17 2026_
+_3 repos · 34 commits · Mar 10 — Mar 17 2025_
 ```
 
-If `OPENAI_API_KEY` is not set, `llm.enabled` is `false`, or `--no-llm` is passed, fallback activates automatically without errors.
+---
 
-## Structure
+## Project Structure
 
 ```
 changelog-tool/
 ├── changelog.py              # Entry point + CLI
-├── config.yaml               # Repos, recipients, format, LLM
-├── .env                      # Tokens (do not version)
+├── config.example.yaml       # Config template
 ├── .env.example
 ├── requirements.txt
-├── last_run.json             # Persists the last successful run
-├── changelogs/
-│   └── .intel_cache/         # LLM output cache by period (not versioned)
 ├── templates/
-│   ├── slack.j2              # Slack format
-│   ├── email.html.j2         # HTML for email
-│   └── markdown.md.j2        # Local .md file
+│   ├── slack.j2              # Slack message template
+│   ├── email.html.j2         # HTML email template
+│   └── markdown.md.j2        # Markdown file template
 └── src/
-    ├── config.py             # Loads config.yaml + .env
+    ├── config.py             # Config + env loader
     ├── parser.py             # Conventional Commits parser
-    ├── generator.py          # Renders Jinja2
-    ├── llm.py                # LLM intelligence (OpenAI)
-    ├── postprocessor.py      # LLM output validation and cleanup
+    ├── generator.py          # Jinja2 renderer
+    ├── llm.py                # OpenAI intelligence call
+    ├── postprocessor.py      # LLM output validation
     ├── fetchers/
-    │   ├── github.py         # GitHub API via PyGithub
+    │   ├── github.py         # GitHub API (PyGithub)
     │   └── bitbucket.py      # Bitbucket REST API v2
     └── distributors/
-        ├── slack.py          # Sending via slack_sdk
-        └── email.py          # SMTP G Suite sending
+        ├── slack.py          # Slack SDK
+        └── email.py          # SMTP / Gmail
 ```
 
-## Persistence
+---
 
-`last_run.json` stores the timestamp of the last successful run. It is updated automatically at the end of each execution.
-
-```json
-{
-  "last_run": "2026-03-17T09:00:00+00:00",
-  "changelogs_generated": 5
-}
-```
-
-## Cron
+## Scheduling
 
 ```cron
 # Every Monday at 9am
 0 9 * * 1 cd /path/to/changelog-tool && python3 changelog.py >> logs/changelog.log 2>&1
 ```
 
+---
+
 ## Dependencies
 
-| Package | Usage |
+| Package | Purpose |
 |---|---|
 | `PyGithub` | GitHub API |
 | `requests` | Bitbucket REST API |
-| `slack_sdk` | Send to Slack |
+| `slack_sdk` | Slack bot |
 | `jinja2` | Template rendering |
-| `pyyaml` | Read config.yaml |
-| `python-dotenv` | Load .env |
+| `pyyaml` | Config parsing |
+| `python-dotenv` | `.env` loading |
 | `openai` | LLM intelligence (optional) |
