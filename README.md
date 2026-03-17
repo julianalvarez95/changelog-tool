@@ -1,7 +1,3 @@
-The user just wants a translation — no file creation needed. Here's the README translated to English:
-
----
-
 # Changelog Generator
 
 A tool that monitors GitHub and Bitbucket repositories, parses the commit history, and distributes business-language changelogs to non-technical stakeholders via Slack and email.
