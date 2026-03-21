@@ -12,7 +12,8 @@ Non-technical operators can generate and send polished changelogs from multiple 
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] User can trigger changelog generation — Validated in Phase 1: Backend Foundation (async job API)
+- [x] User can observe async progress during generation — Validated in Phase 1: Backend Foundation (GET /jobs/{id} status polling)
 
 ### Active
 
@@ -30,6 +31,10 @@ Non-technical operators can generate and send polished changelogs from multiple 
 - User authentication / login — internal tool, deferred to later
 - Stakeholder portal (read-only view for stakeholders) — v2 vision, not v1
 - Scheduling / recurring changelogs — not in initial scope
+
+## Current State
+
+Phase 1 complete — Async job engine, SQLite schema, and job API endpoints (POST /jobs, GET /jobs/{id}, GET /jobs/{id}/result) are live. FastAPI app runs via `uvicorn web.app:app`. CLI unchanged.
 
 ## Context
 
@@ -74,4 +79,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-21 after initialization*
+*Last updated: 2026-03-21 after Phase 1 completion*
