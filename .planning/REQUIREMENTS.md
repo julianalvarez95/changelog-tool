@@ -55,21 +55,21 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| GENR-01 | — | Pending |
-| GENR-02 | — | Pending |
-| GENR-03 | — | Pending |
-| GENR-04 | — | Pending |
-| GENR-05 | — | Pending |
-| GENR-06 | — | Pending |
-| GENR-07 | — | Pending |
-| HIST-01 | — | Pending |
-| HIST-02 | — | Pending |
+| GENR-01 | Phase 2 | Pending |
+| GENR-02 | Phase 2 | Pending |
+| GENR-03 | Phase 2 | Pending |
+| GENR-04 | Phase 1 | Pending |
+| GENR-05 | Phase 1 | Pending |
+| GENR-06 | Phase 2 | Pending |
+| GENR-07 | Phase 2 | Pending |
+| HIST-01 | Phase 3 | Pending |
+| HIST-02 | Phase 3 | Pending |
 
 **Coverage:**
 - v1 requirements: 9 total
-- Mapped to phases: 0
-- Unmapped: 9 ⚠️
+- Mapped to phases: 9
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-21*
-*Last updated: 2026-03-21 after initial definition*
+*Last updated: 2026-03-21 after roadmap creation*
