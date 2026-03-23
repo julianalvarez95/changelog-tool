@@ -99,6 +99,23 @@ def update_job_status(job_id: str, status: str, progress_message: str) -> None:
         conn.close()
 
 
+def list_jobs(limit: int = 50) -> list[dict]:
+    """Return recent jobs sorted by created_at DESC, without large rendered content fields."""
+    conn = sqlite3.connect(str(DB_PATH))
+    conn.row_factory = sqlite3.Row
+    try:
+        rows = conn.execute(
+            """SELECT id, status, since, until, failed_repos, created_at, completed_at, progress_message
+               FROM jobs
+               ORDER BY created_at DESC
+               LIMIT ?""",
+            (limit,),
+        ).fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        conn.close()
+
+
 def update_job_result(
     job_id: str,
     status: str,          # "done" | "partial" | "failed"
